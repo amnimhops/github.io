@@ -11,24 +11,25 @@
 	
 	<script id="vertex-shader" type="x-shader/x-vertex">
 	attribute vec4 vPosition;
-	attribute vec4 verColor;
+	//attribute vec4 verColor;
 	varying vec4 vColor;
 	uniform mat4 camera;
 	uniform mat4 translation;
 	uniform mat4 scale;
 	uniform mat4 rotation;
-	uniform vec4 wireColor;
+	uniform vec4 color;
 	/* Normal shader */
 	void
 	main()
 	{
 	    gl_Position =  camera * translation * rotation * scale * (vPosition);
 	    
-	    if(wireColor.a>0.1){
+	    /**if(wireColor.a>0.1){
     		vColor = wireColor;
     	}else{
     		vColor = verColor;
-    	}
+    	}*/
+    	vColor = color;
 	    
 	}
 	</script>

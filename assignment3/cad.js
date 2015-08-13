@@ -115,6 +115,39 @@ function Plane(){
 	}
 }
 
+function Cylinder(){
+	Mesh.call(this);
+	this.color="#ff00ff";
+
+	this.generateGeometry = function(){
+		this.clearGeometry();
+		
+		var sections = 16;
+		var h = 1;
+
+		var basePoints = [];
+		var topPoints = [];
+		for(var i = 0; i<360; i+=360/sections){
+			var x = Math.cos(radians(i))/2; // We want radius/2 = 1
+			var z = Math.sin(radians(i))/2;
+			basePoints.push([x,0,z,1]);
+			topPoints.push([x,1,z,1]); // Same point, displaced in y
+		}
+		var center1 = [0,0,0,1];
+		var center2 = [0,1,0,1];
+
+		for(var i=0;i<basePoints.length;i++){
+			var v1Offset = i%basePoints.length;
+			var v2Offset = (i+1)%basePoints.length;
+			this.triangle([basePoints[v1Offset],basePoints[v2Offset],center1]); // Bottom
+			this.triangle([topPoints[v1Offset],topPoints[v2Offset],center2]);
+			this.triangle([basePoints[v1Offset],topPoints[v1Offset],topPoints[v2Offset]]);
+			this.triangle([basePoints[v1Offset],topPoints[v2Offset],basePoints[v2Offset]]);
+		}
+	
+		
+	}
+}
 function Cube(){
 	Mesh.call(this);
 	this.color='#0c0c0c';
@@ -196,10 +229,6 @@ function Sphere(){
 	}
 }
 
-function Cylinder(){
-	Mesh.call(this);
-}
-
 function Cone(){
 	Mesh.call(this);
 	this.color = '#0ff00f';
@@ -255,19 +284,19 @@ function CAD(canvas){
      */
     this.uploadGeometry = function(){
     	var vertices = [];
-    	var colors = [];
+    	//var colors = [];
 
     	for(var i in this.objects){
     		this.objects[i].generateGeometry(); // Recreate primitive with current state
 
     		for(var j in this.objects[i].vertices){
     			vertices.push(this.objects[i].vertices[j]);
-    			colors.push(this.objects[i].colors[j]); // 1 vertex, 1 color
+    			//colors.push(this.objects[i].colors[j]); // 1 vertex, 1 color
     		}
     	}
     	/* Redim buffers sizes */
     	this.vertexBuffer.setCapacity(vertices.length*4);
-    	this.colorBuffer.setCapacity(colors.length*4);
+    	//this.colorBuffer.setCapacity(colors.length*4);
     	/* Bind vertex shader data to vertex local buffer*/
     	gl.bindBuffer(gl.ARRAY_BUFFER,this.vertexBuffer.buffer);
     	var vPosition = gl.getAttribLocation( this.program, "vPosition" );
@@ -277,20 +306,20 @@ function CAD(canvas){
         gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(vertices));
 
  		// Color 
-        gl.bindBuffer(gl.ARRAY_BUFFER,this.colorBuffer.buffer);
+        /*gl.bindBuffer(gl.ARRAY_BUFFER,this.colorBuffer.buffer);
         var verColor = gl.getAttribLocation( this.program, "verColor" );
         
         gl.enableVertexAttribArray(verColor);
         gl.vertexAttribPointer(verColor, 4, gl.FLOAT, false, 0, 0);
        
-        gl.bufferSubData(gl.ARRAY_BUFFER,0, flatten(colors));
+        gl.bufferSubData(gl.ARRAY_BUFFER,0, flatten(colors));*/
         
     }
 
     this.triangle = function(vertexList,color){
     	for(var i in vertexList){
     		this.vertices.push(vertexList[i]);
-    		this.colors.push(html2rgba(color));
+    		//this.colors.push(html2rgba(color));
     	}
     };
 
@@ -350,7 +379,7 @@ function CAD(canvas){
 		var vsCameraMatrix = gl.getUniformLocation(this.program,'camera');
 		gl.uniformMatrix4fv(vsCameraMatrix,false,flatten(camera));
 		
-		var vsWireColor = gl.getUniformLocation(this.program,"wireColor");
+		var color = gl.getUniformLocation(this.program,"color");
 
 		var index = 0;
 		for(var i in this.objects){
@@ -367,7 +396,7 @@ function CAD(canvas){
 			gl.uniformMatrix4fv(vsRotationMatrix,false,rotMatrix);
 			gl.uniformMatrix4fv(vsScaleMatrix,false,sclMatrix);
 
-			gl.uniform4fv(vsWireColor,[0,0,0,0]);
+			gl.uniform4fv(color,html2rgba(object.color));
 
 			gl.drawArrays(gl.TRIANGLES, index, 3*object.triangleCount);
 			index+=object.triangleCount*3;
@@ -393,7 +422,7 @@ function CAD(canvas){
 			gl.uniformMatrix4fv(vsRotationMatrix,false,rotMatrix);
 			gl.uniformMatrix4fv(vsScaleMatrix,false,sclMatrix);
 
-			gl.uniform4fv(vsWireColor,col);
+			gl.uniform4fv(color,col);
 			
 
 			for(var j=0;j<object.triangleCount;j++){
@@ -425,21 +454,25 @@ function createObjectProperties(object){
 		<div class="property">\
 			<h1>Position</h1>\
 			<p>\
-				<span>X</span><input class="float" name="posx" type="text" value="'+pos[0]+'" />\
-				Y<input class="float" name="posy" type="text" value="'+pos[1]+'" />\
-				Z<input class="float" name="posz" type="text" value="'+pos[2]+'" />\
+				<span>X</span><input class="float" name="posx" type="number" value="'+pos[0]+'" />\
+				Y<input class="float" name="posy" type="number" value="'+pos[1]+'" />\
+				Z<input class="float" name="posz" type="number" value="'+pos[2]+'" />\
 			</p>\
 			<h1>Scale</h1>\
-			<p>\
-				X<input class="float" name="scalex" type="text" value="'+sca[0]+'" />\
-				Y<input class="float" name="scaley" type="text" value="'+sca[1]+'" />\
-				Z<input class="float" name="scalez" type="text" value="'+sca[2]+'" />\
-			</p>\
+				<p>X</p>\
+				<p><input class="range" name="scalex" type="range" step="0.1" min="1" max="5" value="'+sca[0]+'" /></p>\
+				<p>Y</p>\
+				<p><input class="range" name="scaley" type="range" step="0.1" min="1" max="5" value="'+sca[1]+'" /></p>\
+				<p>Z</p>\
+				<p><input class="range" name="scalez" type="range" step="0.1" min="1" max="5" value="'+sca[2]+'" /></p>\
 			<h1>Rotation</h1>\
 			<p>\
-				X<input class="float" name="rotatex" type="text" value="'+rot[0]+'" />\
-				Y<input class="float" name="rotatey" type="text" value="'+rot[1]+'" />\
-				Z<input class="float" name="rotatez" type="text" value="'+rot[2]+'" />\
+				<p>X</p>\
+				<p><input class="range" name="rotatex" type="range" step="0.1" min="1" max="360" type="text" value="'+rot[0]+'" /></p>\
+				<p>Y</p>\
+				<input class="range" name="rotatey" type="range" step="0.1" min="1" max="360" value="'+rot[1]+'" /></p>\
+				<p>Z</p>\
+				<input class="range" name="rotatez" type="range" step="0.1" min="1" max="360" value="'+rot[2]+'" /></p>\
 			</p>\
 			<h1>Color</h1>\
 			<p><input name="color" type="color" value="'+col+'" style="width:100%"/></p>\
@@ -452,7 +485,7 @@ function createObjectProperties(object){
 		var z = $("#object-properties input[name='posz']").val();
 		
 		object.setPosition([x,y,z]);
-		cad.uploadGeometry();
+		//cad.uploadGeometry();
 	});
 	$("#object-properties input[name='scalex'],input[name='scaley'],input[name='scalez']").change(function(event){
 		var x = $("#object-properties input[name='scalex']").val();
@@ -460,7 +493,7 @@ function createObjectProperties(object){
 		var z = $("#object-properties input[name='scalez']").val();
 		
 		object.setScale([x,y,z]);
-		cad.uploadGeometry();
+		//cad.uploadGeometry();
 	});
 	$("#object-properties input[name='rotatex'],input[name='rotatey'],input[name='rotatez']").change(function(event){
 		var x = $("#object-properties input[name='rotatex']").val();
@@ -468,7 +501,7 @@ function createObjectProperties(object){
 		var z = $("#object-properties input[name='rotatez']").val();
 		
 		object.setRotation([x,y,z]);
-		cad.uploadGeometry();
+		//cad.uploadGeometry();
 	});
 	$("#object-properties input[name='color']").change(function(event){
 		object.setColor(event.target.value);
@@ -491,7 +524,8 @@ function startCAD(canvasId){
 		'plane':Plane,
 		'cube':Cube,
 		'sphere':Sphere,
-		'cone':Cone
+		'cone':Cone,
+		'cylinder':Cylinder
 	}
 	resizeCanvas(canvasId);
 
@@ -561,13 +595,3 @@ function startCAD(canvasId){
 }
 
 var cad = null;
-var angle = 0;
-setInterval(function(){
-	
-	for(var i in cad.objects){
-		cad.objects[i].rotation = [angle,angle,angle];
-		//cad.objects['o-2'].translation = [0.5,0,0];
-		//cad.objects[i].position = [.5,.5,0];//[Math.random(),Math.random(),Math.random()];
-	}
-	angle+=3;
-},50);
