@@ -1,0 +1,117 @@
+body{
+    background-color:#333333;
+    color:white;
+    margin:0px;
+    padding:0px;
+    font-family:verdana;
+    font-size:10pt;
+}
+.floating-window{
+    background-color:#444444;
+    position:absolute;
+    border:1px solid #333333;
+    border-radius:5px;
+    box-shadow: 10px 10px 5px #222222;
+    opacity:80%;
+}
+.floating-window h1{
+    background-color:gray;
+    border:1px solid gray;
+    margin:0px;
+    padding:0px;
+    text-align:center;
+    font-size:12pt;
+    border-radius:5px;
+}
+.floating-window h2{
+    background-color:gray;
+    border:1px solid gray;
+    margin:0px;
+    margin-top:5px;
+    padding:0px;
+    text-align:left;
+    font-size:10pt;
+}
+.floating-window p{
+    margin:3px;
+    padding:3px;
+}
+#left-panel{
+    top:15px;
+    bottom:15px;
+    left:15px;
+    width:200px;
+}
+#right-panel{
+    top:15px;
+    bottom:15px;
+    right:15px;
+}
+#object-picker{
+   margin:0px;
+   padding:0px;
+}
+#object-picker p{
+    margin:0px;
+    padding:0px;
+    margin-left:5px;
+}
+#object-picker a{
+    text-decoration:none;
+    color:gray;
+    font-weight: normal;
+}
+#object-picker a:visited{
+    text-decoration:none;
+    color:gray;
+    font-weight: normal;
+}
+#object-picker a:hover{
+    text-decoration:underline;
+    color:white;
+    font-weight: normal;
+}
+
+#object-picker .selected,#object-picker .selected:visited{
+    color:white;
+}
+
+#object-picker .destroyer,#object-picker .destroyer:visited,#object-picker .destroyer:hover{
+    color:red;
+}
+#canvas-container{
+    position:fixed;
+    background-color:red;
+    float:left;
+    width:50%;
+    margin:0px;
+    padding:0px;
+    border:0px none;
+    width:100%;
+    height:100%;
+
+}    
+#object-properties-wrapper{
+    position:absolute;
+    margin:0px;
+    padding:0px;
+    border:1px solid black;
+    right:15px;
+    width:150px;
+    bottom:15px;
+    top:15px;
+}
+
+#object-properties p{
+    
+}
+#object-properties .float{
+    width:25px;
+    margin-left:5px;
+}
+#gl-canvas{
+    position:fixed;
+    background-color:blue;
+    margin:0px;
+    padding:0px;
+}

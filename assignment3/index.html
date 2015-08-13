@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+	<link rel="stylesheet" type="text/css" href="style.css" />
+	<title>Pretty lines!</title>
+
+	<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script type="text/javascript" src="gl.js"></script>
+	<script type="text/javascript" src="cad.js"></script>
+	
+	<script id="vertex-shader" type="x-shader/x-vertex">
+	attribute vec4 vPosition;
+	attribute vec4 verColor;
+	varying vec4 vColor;
+	uniform mat4 camera;
+	uniform mat4 translation;
+	uniform mat4 scale;
+	uniform mat4 rotation;
+	uniform vec4 wireColor;
+	/* Normal shader */
+	void
+	main()
+	{
+	    gl_Position =  camera * translation * rotation * scale * (vPosition);
+	    
+	    if(wireColor.a>0.1){
+    		vColor = wireColor;
+    	}else{
+    		vColor = verColor;
+    	}
+	    
+	}
+	</script>
+
+	<script id="fragment-shader" type="x-shader/x-fragment">
+	precision mediump float;
+	varying vec4 vColor;
+	void
+	main()
+	{
+	    gl_FragColor = vColor;//vec4( 1.0, 0.0, 0.0, 1.0 );
+	}
+	</script>
+
+	<!--<script type="text/javascript" src="all.js"></script>!-->
+	<script type="text/javascript">
+		$().ready(function(){
+			startCAD('gl-canvas');
+		});
+	</script>
+</head>   
+
+	<body>
+	    <canvas id="gl-canvas">
+	        Oops ... your browser doesn't support the HTML5 canvas element
+	    </canvas>
+		<div id="left-panel" class="floating-window">
+			<h1>Scene</h1>
+			<p>Create
+				<select id="mesh-type-selector">
+					
+				</select>
+			</p>
+			<div id="object-picker">
+				<h1>Mesh list</h1>
+				<div id="object-list"></div>
+			</div>
+		</div>
+		<div id="right-panel" class="floating-window">
+			<div id="object-properties"></div>
+		</div>
+	</body>
+</html>
