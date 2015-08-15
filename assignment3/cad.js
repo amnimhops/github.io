@@ -60,7 +60,9 @@ function Mesh(){
 		
 	};
 	this.update = function(){
-
+		console.log('loc',this.position);
+		console.log('rot',this.rotation);
+		console.log('sca',this.scale);
 	};
 	this.setSelected = function(isselected){
 		this.selected = isselected;
@@ -75,12 +77,12 @@ function Mesh(){
 		this.update();
 	}
 	this.setScale = function(scale){
-		this.scale = scale;
+		this.scale = scale;console.log(scale);
 		this.update();
 	}
 	this.setRotation = function(rotation){
 		this.rotation = rotation;
-		this.update;
+		this.update();
 	}
 
 	this.getTranslationMatrix = function(){
@@ -111,7 +113,6 @@ function Plane(){
 
 		this.triangle([a,b,c]);
 		this.triangle([a,c,d]);
-		this.triangle([[-1,-1,0.5,1],[-1,1,0.5,1],[1,1,0.5,1]]);
 	}
 }
 
@@ -165,7 +166,7 @@ function Cube(){
 			
 		var tris = [
 			[a,b,c],
-			[a,b,c],
+			[b,d,c],
 			[b,f,g],
 			[b,g,c],
 			[d,c,g],
@@ -278,6 +279,16 @@ function CAD(canvas){
 	this.colorBuffer = new Float32Buffer(gl);
 	this.triangles = [];
 
+	this.camera = {
+		position:[-3,-3,-3],
+		look:[0,0,0],
+		up:[0,1,0],
+		phi:0,
+		theta:0
+	}
+
+	this.lastClick = null;
+
 	/*
      * This function allocates sufficient memory to store
      * vertex and color data for all defined objects
@@ -371,9 +382,7 @@ function CAD(canvas){
 		gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 		
 		/* Camera position */
-		var camera = lookAt([2,2,-2],[0,0,0],[0,1,0]);
-		var persp = perspective(90,this.width/this.height,0.5,10);
-		camera = mult(persp,camera);
+		var camera = this.getCameraMatrix2();
 
 		/* Send camera to shader */
 		var vsCameraMatrix = gl.getUniformLocation(this.program,'camera');
@@ -432,6 +441,53 @@ function CAD(canvas){
 		}
 	};
 
+	this.setCameraRotation = function(phiDelta,thetaDelta){
+		this.camera.phi = this.camera.phi+phiDelta;
+		this.camera.theta = this.camera.theta+thetaDelta;
+
+		if(this.camera.phi>360){
+			this.camera.phi = this.camera.phi%360;
+		}else if(this.camera.phi<0){
+			this.camera.phi = 360 - (Math.abs(this.camera.phi)%360);
+		}
+	};
+
+	this.getCameraMatrix = function(){
+		var camx = this.camera.position[0] * Math.cos(radians(this.camera.phi));
+		var camy = this.camera.position[1];
+		var camz = this.camera.position[2] * Math.sin(radians(this.camera.phi));
+		var cam = lookAt(/*[camx,camy,camz]*/this.camera.position,this.camera.look,this.camera.up);
+		
+		cam = mult(rotate(this.camera.phi,[0,0,1]),cam);
+		cam = mult(rotate(this.camera.theta,[0,1,0]),cam);
+		var persp = perspective(90,this.width/this.height,0.5,10);
+
+
+		cam = mult(persp,cam);
+
+		return cam;
+	}
+
+	this.getCameraMatrix2 = function(){
+		var radius = 5;
+		var phi = radians(this.camera.phi);
+		var theta = radians(this.camera.theta);
+
+		var y = radius * Math.sin(theta) * Math.cos(phi);
+		var z = radius * Math.sin(theta) * Math.sin(phi);
+		var x = radius * Math.cos(theta);
+		
+		var cam = lookAt([x,y,z],this.camera.look,this.camera.up);
+		
+		var persp = perspective(90,this.width/this.height,0.5,10);
+
+
+		cam = mult(persp,cam);
+
+		return cam;
+	}
+
+
 	/* Setup GL */
 	gl.clearColor(0.4,0.4,0.4,1);
 	gl.enable(gl.DEPTH_TEST);
@@ -468,11 +524,11 @@ function createObjectProperties(object){
 			<h1>Rotation</h1>\
 			<p>\
 				<p>X</p>\
-				<p><input class="range" name="rotatex" type="range" step="0.1" min="1" max="360" type="text" value="'+rot[0]+'" /></p>\
+				<p><input class="range" name="rotatex" type="range" step="0.1" min="0" max="360" type="text" value="'+rot[0]+'" /></p>\
 				<p>Y</p>\
-				<input class="range" name="rotatey" type="range" step="0.1" min="1" max="360" value="'+rot[1]+'" /></p>\
+				<p><input class="range" name="rotatey" type="range" step="0.1" min="0" max="360" value="'+rot[1]+'" /></p>\
 				<p>Z</p>\
-				<input class="range" name="rotatez" type="range" step="0.1" min="1" max="360" value="'+rot[2]+'" /></p>\
+				<p><input class="range" name="rotatez" type="range" step="0.1" min="0" max="360" value="'+rot[2]+'" /></p>\
 			</p>\
 			<h1>Color</h1>\
 			<p><input name="color" type="color" value="'+col+'" style="width:100%"/></p>\
@@ -480,26 +536,26 @@ function createObjectProperties(object){
 	');
 	/* 2.- Attach listeners */
 	$("#object-properties input[name='posx'],input[name='posy'],input[name='posz']").change(function(event){
-		var x = $("#object-properties input[name='posx']").val();
-		var y = $("#object-properties input[name='posy']").val();
-		var z = $("#object-properties input[name='posz']").val();
+		var x = parseFloat($("#object-properties input[name='posx']").val());
+		var y = parseFloat($("#object-properties input[name='posy']").val());
+		var z = parseFloat($("#object-properties input[name='posz']").val());
 		
 		object.setPosition([x,y,z]);
 		//cad.uploadGeometry();
 	});
 	$("#object-properties input[name='scalex'],input[name='scaley'],input[name='scalez']").change(function(event){
-		var x = $("#object-properties input[name='scalex']").val();
-		var y = $("#object-properties input[name='scaley']").val();
-		var z = $("#object-properties input[name='scalez']").val();
+		var x = parseFloat($("#object-properties input[name='scalex']").val());
+		var y = parseFloat($("#object-properties input[name='scaley']").val());
+		var z = parseFloat($("#object-properties input[name='scalez']").val());
 		
 		object.setScale([x,y,z]);
 		//cad.uploadGeometry();
 	});
 	$("#object-properties input[name='rotatex'],input[name='rotatey'],input[name='rotatez']").change(function(event){
-		var x = $("#object-properties input[name='rotatex']").val();
-		var y = $("#object-properties input[name='rotatey']").val();
-		var z = $("#object-properties input[name='rotatez']").val();
-		
+		var x = parseFloat($("#object-properties input[name='rotatex']").val());
+		var y = parseFloat($("#object-properties input[name='rotatey']").val());
+		var z = parseFloat($("#object-properties input[name='rotatez']").val());
+		console.log('new rotation is',x,y,z);
 		object.setRotation([x,y,z]);
 		//cad.uploadGeometry();
 	});
@@ -522,7 +578,7 @@ function startCAD(canvasId){
 	cad = new CAD(document.getElementById(canvasId));
 	var generators = {
 		'plane':Plane,
-		'cube':Cube,
+		//'cube':Cube,
 		'sphere':Sphere,
 		'cone':Cone,
 		'cylinder':Cylinder
@@ -538,6 +594,25 @@ function startCAD(canvasId){
 		$("#mesh-type-selector").append("<option value='"+type+"'>"+type+"</option>");
 	}
 
+	/* Setup camera control */
+	$("#"+canvasId).mousedown(function(event){console.dir(event.target);
+		cad.lastClick = [event.pageX,event.pageY];
+	});
+	$("#"+canvasId).mouseup(function(){
+		cad.lastClick = null;
+	});
+	$("#"+canvasId).mousemove(function(event){
+		if(cad.lastClick!==null){
+			var last = cad.lastClick;
+			//console.log(last[0]-event.target.clientX,last[1]-event.target.clientY);
+			console.log(last);
+			cad.setCameraRotation(last[0]-event.pageX,last[1]-event.pageY);
+
+			cad.lastClick = [event.pageX,event.pageY];
+		}
+	});
+	
+	
 	$("#mesh-type-selector").change(function(event){
 		var generator = generators[event.target.value];
 		console.log('Creating object with',generator);
@@ -579,6 +654,8 @@ function startCAD(canvasId){
 		/* Finally, reset selector to default value */
 		$("#mesh-type-selector option").attr('selected','');
 		$("#mesh-type-selector option[value='default']").attr('selected','selected');
+
+		$("#p-"+objectIndex+" .selector")
 	});
 
 	/* Init render loop */
