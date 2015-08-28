@@ -2,17 +2,17 @@ function html2rgba(color){
 	var r = parseInt(color.substr(1,2),16);
     var g = parseInt(color.substr(3,2),16);
     var b = parseInt(color.substr(5,2),16);
-    
+
     return [r/256,g/256,b/256,1.0];
 }
+
 
 function Float32Buffer(gl){
     this.buffer = null;
     this.size = 0;
-
     this.setCapacity = function(count){
         this.size = count;
-        
+
         if(this.buffer !== null){
             /* Free last buffer */
             gl.deleteBuffer(this.buffer);
@@ -26,10 +26,11 @@ function Float32Buffer(gl){
 
 function Mesh(){
 	this.id=null;
-	
+
 	this.triangleCount = 0;
 	this.vertices = [];
 	this.colors = [];
+	this.normals = [];
 
 	this.position = [0,0,0];
 	this.rotation = [0,0,0];
@@ -37,7 +38,7 @@ function Mesh(){
 
 	this.color = "#0000ff";
 	this.selected = false;
-	
+
 
 	this.generateGeometry = function(){
 		// NOthing to do
@@ -48,16 +49,21 @@ function Mesh(){
 		this.triangleCount = [];
 	}
 
+	/**
+	 * vertexList is an array of objects as [{v:[v,v,v],n:[n,n,n]},...]
+	 * @param  {Object} vertexList Vertex list with normals
+	 */
     this.triangle = function(vertexList){
     	for(var i in vertexList){
-    		this.vertices.push(vertexList[i]);
+			this.vertices.push(vertexList[i].v);
+			this.normals.push(vertexList[i].n);
     		this.colors.push(html2rgba(this.color));
     	}
     	this.triangleCount++;
     };
 
 	this.render = function(){
-		
+
 	};
 	this.update = function(){
 		console.log('loc',this.position);
@@ -92,7 +98,7 @@ function Mesh(){
 		var rx = rotate(this.rotation[0],[1,0,0]);
 		var ry = rotate(this.rotation[1],[0,1,0]);
 		var rz = rotate(this.rotation[2],[0,0,1]);
-		
+
 		return mult(rz,mult(ry,rx));
 	}
 	this.getScaleMatrix = function(){
@@ -106,10 +112,10 @@ function Plane(){
 	this.generateGeometry = function(){
 		this.clearGeometry();
 
-		var a = [-1,-1,0,1];
-		var b = [-1,1,0,1];
-		var c = [1,1,0,1];
-		var d = [1,-1,0,1];
+		var a = {v:[-1,-1,0,1],n:[0,0,1]};
+		var b = {v:[-1,1,0,1],n:[0,0,1]};
+		var c = {v:[1,1,0,1],n:[0,0,1]};
+		var d = {v:[1,-1,0,1],n:[0,0,1]};
 
 		this.triangle([a,b,c]);
 		this.triangle([a,c,d]);
@@ -122,7 +128,7 @@ function Cylinder(){
 
 	this.generateGeometry = function(){
 		this.clearGeometry();
-		
+
 		var sections = 16;
 		var h = 1;
 
@@ -145,8 +151,8 @@ function Cylinder(){
 			this.triangle([basePoints[v1Offset],topPoints[v1Offset],topPoints[v2Offset]]);
 			this.triangle([basePoints[v1Offset],topPoints[v2Offset],basePoints[v2Offset]]);
 		}
-	
-		
+
+
 	}
 }
 function Cube(){
@@ -163,7 +169,7 @@ function Cube(){
 		var f = [-0.5,0.5,0.5,1];
 		var g = [0.5,0.5,0.5,1];
 		var h = [0.5,-0.5,0.5,1];
-			
+
 		var tris = [
 			[a,b,c],
 			[b,d,c],
@@ -204,14 +210,21 @@ function Sphere(){
 		var c = getPolarVertex(radius,phi+pdelta,theta+tdelta);
 		var d = getPolarVertex(radius,phi,theta+tdelta);
 
+		var na = normalize([a[0],a[1],a[2]]);
+		var nb = normalize([b[0],b[1],b[2]]);
+		var nc = normalize([c[0],c[1],c[2]]);
+		var nd = normalize([d[0],d[1],d[2]]);
+
 		var cero = [0,0,0,1];
 		/*this.triangle([cero,cero,a]);
 		this.triangle([cero,cero,b]);
 		this.triangle([cero,cero,c]);
 		this.triangle([cero,cero,d]);*/
-		this.triangle([a,b,c]);
-		this.triangle([a,c,d]);
-		
+		//console.log(na,nb,nc,nd);
+		this.triangle([{v:a,n:na},{v:b,n:nb},{v:c,n:nc}]);
+		this.triangle([{v:a,n:na},{v:c,n:nc},{v:d,n:nd}]);
+		//this.triangle([a,c,d]);
+
 		//this.triangle([a,c,d]);
 
 
@@ -219,14 +232,14 @@ function Sphere(){
 	this.generateGeometry = function(){
 		this.clearGeometry();
 
-		var segments = 16;
+		var segments = 8;
 		for(var i=0;i<Math.PI;i+=Math.PI/segments)
 			for(var j=0;j<Math.PI*2;j+=Math.PI/segments)
 				this.createSlab(1,i,j,Math.PI/segments,Math.PI/segments);
-		
+
 		//this.createSlab(1,1,1,1,1);
 		//this.createSlab(1,2,2,1,1);
-		
+
 	}
 }
 
@@ -236,7 +249,7 @@ function Cone(){
 
 	this.generateGeometry = function(){
 		this.clearGeometry();
-		
+
 		var sections = 16;
 		var h = 1;
 
@@ -256,8 +269,8 @@ function Cone(){
 			this.triangle([basePoints[v1Offset],basePoints[v2Offset],center]);
 			this.triangle([basePoints[v1Offset],basePoints[v2Offset],peak]);
 		}
-	
-		
+
+
 	}
 }
 
@@ -267,20 +280,24 @@ function CAD(canvas){
 
 	MAX_VERTICES = 	1000;
 	var objectIndex = 0;
-	
+
 	this.width = null;
 	this.height = null;
 
 	this.objects = {};
 	this.vertices = [];
-
 	this.vertexBuffer = new Float32Buffer(gl);
+
 	this.colors = [];
 	this.colorBuffer = new Float32Buffer(gl);
+
+	this.normals = [];
+	this.normalBuffer = new Float32Buffer(gl);
+
 	this.triangles = [];
 
 	this.camera = {
-		position:[-3,-3,-3],
+		position:[3,3,-3],
 		look:[0,0,0],
 		up:[0,1,0],
 		phi:0,
@@ -295,6 +312,7 @@ function CAD(canvas){
      */
     this.uploadGeometry = function(){
     	var vertices = [];
+    	var normals = [];
     	//var colors = [];
 
     	for(var i in this.objects){
@@ -302,41 +320,44 @@ function CAD(canvas){
 
     		for(var j in this.objects[i].vertices){
     			vertices.push(this.objects[i].vertices[j]);
+    			normals.push(this.objects[i].normals[j]);
     			//colors.push(this.objects[i].colors[j]); // 1 vertex, 1 color
     		}
     	}
     	/* Redim buffers sizes */
-    	this.vertexBuffer.setCapacity(vertices.length*4);
+    	this.vertexBuffer.setCapacity(vertices.length*4); //vec4
+    	this.normalBuffer.setCapacity(normals.length*3); //vec3
     	//this.colorBuffer.setCapacity(colors.length*4);
     	/* Bind vertex shader data to vertex local buffer*/
     	gl.bindBuffer(gl.ARRAY_BUFFER,this.vertexBuffer.buffer);
     	var vPosition = gl.getAttribLocation( this.program, "vPosition" );
         gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
         gl.enableVertexAttribArray( vPosition );
-        
+
         gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(vertices));
 
- 		// Color 
+ 		// Color
         /*gl.bindBuffer(gl.ARRAY_BUFFER,this.colorBuffer.buffer);
         var verColor = gl.getAttribLocation( this.program, "verColor" );
-        
+
         gl.enableVertexAttribArray(verColor);
         gl.vertexAttribPointer(verColor, 4, gl.FLOAT, false, 0, 0);
-       
+
         gl.bufferSubData(gl.ARRAY_BUFFER,0, flatten(colors));*/
-        
+
+        // Normals
+		this.normalBuffer.setCapacity(normals.length*3); //vec3
+        gl.bindBuffer(gl.ARRAY_BUFFER,this.normalBuffer.buffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, flatten(normals));
+
+    	var vNormal = gl.getAttribLocation( this.program, "vNormal" );
+        gl.vertexAttribPointer( vNormal, 3, gl.FLOAT, false, 0, 0 );
+        gl.enableVertexAttribArray( vNormal );
     }
 
-    this.triangle = function(vertexList,color){
-    	for(var i in vertexList){
-    		this.vertices.push(vertexList[i]);
-    		//this.colors.push(html2rgba(color));
-    	}
-    };
-
-	this.createObject = function(generator){
+    this.createObject = function(generator){
 		var object = new generator(this);
-		
+
 		object.generateGeometry();
 
 		var index = "o-"+objectIndex;
@@ -359,7 +380,7 @@ function CAD(canvas){
 
 		var object = this.objects[id];
 		object.setSelected(true);
-		
+
 		return object;
 	};
 	this.getObject = function(id){
@@ -378,21 +399,41 @@ function CAD(canvas){
 		console.log(this.width,this.height);
 		gl.viewport(0,0,this.width,this.height);
 	}
+	
 	this.render = function(){
 		gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
-		
-		/* Camera position */
-		var camera = this.getCameraMatrix2();
 
-		/* Send camera to shader */
-		var vsCameraMatrix = gl.getUniformLocation(this.program,'camera');
-		gl.uniformMatrix4fv(vsCameraMatrix,false,flatten(camera));
+		var lightPosition = vec4(0.0, 0.0, -2.0, 0.0 );
+		var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
+		var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
+		var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+		var materialShininess = 100.0;
+		var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
+		var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0);
+		var materialSpecular = vec4( 1.0, 0.8, 0.0, 1.0 );
+
+		var ambientProduct = mult(lightAmbient, materialAmbient);
+    	var diffuseProduct = mult(lightDiffuse, materialDiffuse);
+    	var specularProduct = mult(lightSpecular, materialSpecular);
 		
-		var color = gl.getUniformLocation(this.program,"color");
+		gl.uniform4fv(gl.getUniformLocation(this.program, "ambientProduct"),flatten(ambientProduct));
+    	gl.uniform4fv(gl.getUniformLocation(this.program, "diffuseProduct"),flatten(diffuseProduct));
+    	gl.uniform4fv(gl.getUniformLocation(this.program, "specularProduct"),flatten(specularProduct));	
+    	gl.uniform4fv(gl.getUniformLocation(this.program, "lightPosition"), flatten(lightPosition));
+    	//gl.uniform4fv(gl.getUniformLocation(this.program, "lightPosition"), flatten(this.lightMatrix));
+       
+    	gl.uniform1f(gl.getUniformLocation(this.program,"shininess"),materialShininess);
+		var camera = this.getCameraMatrix2();    
+    	gl.uniformMatrix4fv( gl.getUniformLocation(this.program, "projectionMatrix"),false, flatten(camera));
+    	//var color = gl.getUniformLocation(this.program,"color");
 
 		var index = 0;
 		for(var i in this.objects){
 			var object = this.objects[i];
+
+			var modelView = object.getRotationMatrix();
+			gl.uniformMatrix4fv( gl.getUniformLocation(this.program, "modelViewMatrix"), false, flatten(modelView));
+			/*
 			var vsTranslationMatrix = gl.getUniformLocation(this.program,'translation');
 			var vsScaleMatrix = gl.getUniformLocation(this.program,'scale');
 			var vsRotationMatrix = gl.getUniformLocation(this.program,'rotation');
@@ -404,12 +445,13 @@ function CAD(canvas){
 			gl.uniformMatrix4fv(vsTranslationMatrix,false,locMatrix);
 			gl.uniformMatrix4fv(vsRotationMatrix,false,rotMatrix);
 			gl.uniformMatrix4fv(vsScaleMatrix,false,sclMatrix);
-
-			gl.uniform4fv(color,html2rgba(object.color));
+			*/
+			//gl.uniform4fv(color,html2rgba(object.color));
 
 			gl.drawArrays(gl.TRIANGLES, index, 3*object.triangleCount);
 			index+=object.triangleCount*3;
 		}
+		/*
 		// Wireframe pass
 		var wireColor = [0,0,0,1];
 		var selColor = [1,1,0,1];
@@ -432,13 +474,12 @@ function CAD(canvas){
 			gl.uniformMatrix4fv(vsScaleMatrix,false,sclMatrix);
 
 			gl.uniform4fv(color,col);
-			
 
 			for(var j=0;j<object.triangleCount;j++){
 				gl.drawArrays(gl.LINE_LOOP, index, 3);
 				index+=3;
 			}
-		}
+		}*/
 	};
 
 	this.setCameraRotation = function(phiDelta,thetaDelta){
@@ -452,33 +493,21 @@ function CAD(canvas){
 		}
 	};
 
-	this.getCameraMatrix = function(){
-		var camx = this.camera.position[0] * Math.cos(radians(this.camera.phi));
-		var camy = this.camera.position[1];
-		var camz = this.camera.position[2] * Math.sin(radians(this.camera.phi));
-		var cam = lookAt(/*[camx,camy,camz]*/this.camera.position,this.camera.look,this.camera.up);
-		
-		cam = mult(rotate(this.camera.phi,[0,0,1]),cam);
-		cam = mult(rotate(this.camera.theta,[0,1,0]),cam);
-		var persp = perspective(90,this.width/this.height,0.5,10);
-
-
-		cam = mult(persp,cam);
-
-		return cam;
-	}
-
 	this.getCameraMatrix2 = function(){
 		var radius = 5;
 		var phi = radians(this.camera.phi);
 		var theta = radians(this.camera.theta);
 
+		var y = this.camera.position[0];//radius * Math.sin(theta) * Math.cos(phi);
+		var z = this.camera.position[1];//radius * Math.sin(theta) * Math.sin(phi);
+		var x = this.camera.position[2];//radius * Math.cos(theta);
+
 		var y = radius * Math.sin(theta) * Math.cos(phi);
 		var z = radius * Math.sin(theta) * Math.sin(phi);
 		var x = radius * Math.cos(theta);
-		
+
 		var cam = lookAt([x,y,z],this.camera.look,this.camera.up);
-		
+
 		var persp = perspective(90,this.width/this.height,0.5,10);
 
 
@@ -495,7 +524,7 @@ function CAD(canvas){
 	this.program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram(this.program);
 
-    
+
 
 }
 
@@ -539,7 +568,7 @@ function createObjectProperties(object){
 		var x = parseFloat($("#object-properties input[name='posx']").val());
 		var y = parseFloat($("#object-properties input[name='posy']").val());
 		var z = parseFloat($("#object-properties input[name='posz']").val());
-		
+
 		object.setPosition([x,y,z]);
 		//cad.uploadGeometry();
 	});
@@ -547,7 +576,7 @@ function createObjectProperties(object){
 		var x = parseFloat($("#object-properties input[name='scalex']").val());
 		var y = parseFloat($("#object-properties input[name='scaley']").val());
 		var z = parseFloat($("#object-properties input[name='scalez']").val());
-		
+
 		object.setScale([x,y,z]);
 		//cad.uploadGeometry();
 	});
@@ -611,12 +640,12 @@ function startCAD(canvasId){
 			cad.lastClick = [event.pageX,event.pageY];
 		}
 	});
-	
-	
+
+
 	$("#mesh-type-selector").change(function(event){
 		var generator = generators[event.target.value];
 		console.log('Creating object with',generator);
-		
+
 		var objectIndex = cad.createObject(generator);
 
 		var title = "Object #"+objectIndex+" ("+event.target.value+")";
@@ -628,7 +657,7 @@ function startCAD(canvasId){
 			</p>'
 		);
 
-		
+
 		/* Add destroy listener */
 		$("#p-"+objectIndex+" .destroyer").click(function(event){
 			cad.removeObject(objectIndex);
@@ -643,14 +672,14 @@ function startCAD(canvasId){
 
 			/* Let the cad object do the logic associated with selection */
 			var selectedObject = cad.selectObject(objectIndex);
-			
+
 			/* Empty property tab and show the selected object custom properties */
 			$("#object-properties").empty();
 			createObjectProperties(selectedObject);
 		});
-	
 
-		
+
+
 		/* Finally, reset selector to default value */
 		$("#mesh-type-selector option").attr('selected','');
 		$("#mesh-type-selector option[value='default']").attr('selected','selected');
@@ -662,13 +691,22 @@ function startCAD(canvasId){
 	function render(){
 	    setTimeout(function(){
 	        requestAnimFrame(render);
-	        
+
 	        cad.render();
-	        
+
 	    },25);
 	}
 
 	render();
+	var ang = 0;
+	setInterval(function(){
+		var rotation = [ang,0,0];
+		for(var i in cad.objects){
+			cad.objects[i].setRotation(rotation);
+		}
+		ang+=1;
+		if(ang>360) ang=0;
+	},50);
 }
 
 var cad = null;
