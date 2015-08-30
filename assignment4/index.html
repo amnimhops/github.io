@@ -59,13 +59,10 @@
 		uniform mat4 cameraMatrix;
 		uniform mat4 projectionMatrix;
 		
-		uniform vec4 lightPosition;
-		uniform mat4 lightMatrix;
-		
 		uniform mat4 lightMatrix_0,lightMatrix_1,lightMatrix_2,lightMatrix_3;
 		uniform vec4 lightPosition_0,lightPosition_1,lightPosition_2,lightPosition_3;
 
-		
+
 		mat4 selectLightMatrix(int lightIndex){
 			if(lightIndex==0){
 				return lightMatrix_0;
@@ -93,47 +90,59 @@
 		void main()
 		{
 			
-			mat4 lightMatrix = selectLightMatrix(0);
-			vec4 lightPos = selectLightPosition(0);
-			
 			mat4 modelViewMatrix = cameraMatrix * locMatrix * rotateMatrix * scaleMatrix;//translation * rotation * scale
-		    
+			vec3 pos = -(modelViewMatrix *vPosition).xyz;
 
-		    vec3 pos = -(modelViewMatrix *vPosition).xyz;
-		    
-		    //fixed light postion
-		    
-		    
-		    vec3 light = (modelViewMatrix * lightMatrix * vec4(0,20,0,1)).xyz;
-		    vec3 L = normalize( light - pos );
+			vec4 mixedAmbient, mixedDiffuse, mixedSpecular;
 
+			fColor = ambientProduct;
 			
-		    vec3 E = normalize( -pos );
-		    vec3 H = normalize( L + E );
-		    
-		    vec4 NN = vec4(vNormal,0);
 
-		    // Transform vertex normal into eye coordinates
-		       
-		    vec3 N = normalize( (modelViewMatrix*NN).xyz);
+			for(int c=0;c<4;c++){
+				mat4 lightMatrix = selectLightMatrix(c);
+				vec4 lightPos = selectLightPosition(c);
 
-		    // Compute terms in the illumination equation
-		    vec4 ambient = ambientProduct;
+				if(lightPos!=vec4(0,0,0,1)){
+					vec3 light = (modelViewMatrix * lightMatrix * lightPos).xyz;
+			    	vec3 L = normalize( light - pos );
+					
+					//fixed light postion
+				    vec3 E = normalize( -pos );
+				    vec3 H = normalize( L + E );
+				    
+				    vec4 NN = vec4(vNormal,0);
 
-		    float Kd = max( dot(L, N), 0.0 );
-		    vec4  diffuse = Kd*diffuseProduct;
+				    // Transform vertex normal into eye coordinates
+				       
+				    vec3 N = normalize( (modelViewMatrix*NN).xyz);
 
-		    float Ks = pow( max(dot(N, H), 0.0), shininess );
-		    vec4  specular = Ks * specularProduct;
-		    
-		    if( dot(L, N) < 0.0 ) {
-			specular = vec4(0.0, 0.0, 0.0, 1.0);
-		    } 
+				    // Compute terms in the illumination equation
+				    //vec4 ambient = ambientProduct;
 
+				    float Kd = max( dot(L, N), 0.0 );
+				    vec4  diffuse = Kd*diffuseProduct;
+
+				    float Ks = pow( max(dot(N, H), 0.0), shininess );
+				    vec4  specular = Ks * specularProduct;
+				    
+				    if( dot(L, N) < 0.0 ) {
+					specular = vec4(0.0, 0.0, 0.0, 1.0);
+				    } 
+
+				    fColor = fColor + diffuse + specular;
+				}
+			}
+			
 		    gl_Position = projectionMatrix * modelViewMatrix * vPosition;
-		    fColor = ambient + diffuse +specular;
+		    //fColor = ambient + diffuse +specular;
 		    
 		    fColor.a = 1.0;
+
+		    
+		    
+		    
+
+		    
 		}
 
 

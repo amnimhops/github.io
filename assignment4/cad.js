@@ -118,6 +118,8 @@ function Mesh(){
 
 function Light(){
 	Mesh.call(this);
+	
+	this.enabled = true;
 
 	this.generateGeometry = function(){
 		this.clearGeometry();
@@ -331,7 +333,7 @@ function Cone(){
 		for(var i = 0; i<360; i+=360/sections){
 			var x = Math.cos(radians(i))/2; // We want radius/2 = 1
 			var z = Math.sin(radians(i))/2;
-			basePoints.push({v:[x,0,z,1],n:[0,1,0]});
+			basePoints.push({v:[x,0,z,1],n:[x*2,0,z*2]});
 		}
 		var center = {v:[0,0,0,1],n:[0,-1,0]};
 		var peak = {v:[0,1,0,1],n:[0,1,0]};
@@ -459,30 +461,18 @@ function CAD(canvas){
 		gl.viewport(0,0,this.width,this.height);
 	}
 	
-	this.lightMatrix = mat4();
-	var ang = 0;
-	var t = this;
-	setInterval(function(){
-
-			t.lightMatrix = rotate(ang,[0,0,1]);
-			
-			//t.lightMatrix = translate(5,5,5);//mult(translate([0,5,0],t.lightMatrix));
-			ang+=1;
-
-	//console.log(ang);			
-
-	},25);
+	
+	
 	this.render = function(){
 		gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 
-		
 		var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
 		var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 		var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
-		var materialShininess = 100.0;
+		var materialShininess = 200.0;
 		var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
 		var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0);
-		var materialSpecular = vec4( 1.0, 0.8, 0.0, 1.0 );
+		var materialSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
 		var ambientProduct = mult(lightAmbient, materialAmbient);
     	var diffuseProduct = mult(lightDiffuse, materialDiffuse);
@@ -492,8 +482,6 @@ function CAD(canvas){
     	gl.uniform4fv(gl.getUniformLocation(this.program, "diffuseProduct"),flatten(diffuseProduct));
     	gl.uniform4fv(gl.getUniformLocation(this.program, "specularProduct"),flatten(specularProduct));	
 
-    	gl.uniformMatrix4fv(gl.getUniformLocation(this.program, "lightMatrix"), false,flatten(this.lightMatrix));
-       
     	gl.uniform1f(gl.getUniformLocation(this.program,"shininess"),materialShininess);
 		var camera = this.getCameraMatrix2();    
     	
@@ -507,20 +495,29 @@ function CAD(canvas){
 		var lights = [];
 
 		for(var i in this.objects){
-			if(this.objects[i] instanceof Light){
+			if(this.objects[i] instanceof Light && this.objects[i].enabled==true){
 				lights.push(this.objects[i]);
 			}
 		}
 
-		for(var i in lights){
-			var light = lights[i];
-			var translate = light.getTranslationMatrix();
-			var lightPosition = [translate[0][3],translate[1][3],translate[2][3],1];
+		for(var i =0;i<4;i++){
+			var lightMatrix = null;
+			var lightPosition = null;
+			if(i<lights.length){
+				var light = lights[i];
+				var translate = light.getTranslationMatrix();
+				lightPosition = [translate[0][3],translate[1][3],translate[2][3],1];
 
-			lightMatrix = mult(light.getScaleMatrix(),light.getRotationMatrix());
-			
+				lightMatrix = mult(light.getScaleMatrix(),light.getRotationMatrix());
+				
+			}else{
+				lightPosition = [0,0,0,1];
+				lightMatrix = mat4();
+			}
+
 			gl.uniformMatrix4fv(gl.getUniformLocation(this.program, "lightMatrix_"+i), false,flatten(lightMatrix));
-			gl.uniform4fv(gl.getUniformLocation(this.program, "lightPosition_"+i),flatten(lightPosition));
+			gl.uniform4fv(gl.getUniformLocation(this.program, "lightPosition_"+i), flatten(lightPosition));
+
 		}
 
 		for(var i in this.objects){
@@ -666,6 +663,17 @@ function createObjectProperties(object){
 			<p><input name="color" type="color" value="'+col+'" style="width:100%"/></p>\
 		</div>\
 	');
+
+	if(object instanceof Light){
+
+		$("#object-properties").append("<h1>Light</h1><p><input name='enabled' type='checkbox'/>Enable</p>");
+		$("#object-properties input[name='enabled']").prop('checked',object.enabled);
+		$("#object-properties input[name='enabled']").change(function(event){
+
+		//console.log($("#object-properties input[name='enabled']").prop('checked'));
+			object.enabled = $("#object-properties input[name='enabled']").prop('checked');
+		});
+	}
 	/* 2.- Attach listeners */
 	$("#object-properties input[name='posx'],input[name='posy'],input[name='posz']").change(function(event){
 		var x = parseFloat($("#object-properties input[name='posx']").val());
@@ -745,14 +753,11 @@ function startCAD(canvasId){
 		}
 	});
 
-
-	$("#mesh-type-selector").change(function(event){
-		var generator = generators[event.target.value];
-		console.log('Creating object with',generator);
-
+	function newObject(generatorName){
+		var generator = generators[generatorName];
 		var objectIndex = cad.createObject(generator);
 
-		var title = "Object #"+objectIndex+" ("+event.target.value+")";
+		var title = "Object #"+objectIndex+" ("+generatorName+")";
 
 		$("#object-list").append(
 			'<p id="p-'+objectIndex+'">\
@@ -782,13 +787,36 @@ function startCAD(canvasId){
 			createObjectProperties(selectedObject);
 		});
 
+		return objectIndex;
 
+	}
+
+	var i = newObject('sphere');
+	cad.objects[i].setPosition([0,0,0]);
+
+	i = newObject('cone');
+	cad.objects[i].setPosition([2,0,0]);
+
+	i = newObject('cylinder');
+	cad.objects[i].setPosition([4,0,0]);
+	
+	i = newObject('light');
+	cad.objects[i].setPosition([10,10,-13]);
+	
+	i = newObject('light');
+	cad.objects[i].setPosition([12,7,-8]);
+	
+	$("#mesh-type-selector").change(function(event){
+		
+		newObject(event.target.value);
+
+		console.log('Creating object with',event.target.value);
 
 		/* Finally, reset selector to default value */
 		$("#mesh-type-selector option").attr('selected','');
 		$("#mesh-type-selector option[value='default']").attr('selected','selected');
 
-		$("#p-"+objectIndex+" .selector")
+		//$("#p-"+objectIndex+" .selector")
 	});
 
 	
@@ -803,15 +831,6 @@ function startCAD(canvasId){
 	}
 
 	render();
-	/*var ang = 0;
-	setInterval(function(){
-		var rotation = [ang,0,0];
-		for(var i in cad.objects){
-			cad.objects[i].setRotation(rotation);
-		}
-		ang+=1;
-		if(ang>360) ang=0;
-	},50);*/
 }
 
 var cad = null;
