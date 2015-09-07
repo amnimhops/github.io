@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+	<link rel="stylesheet" type="text/css" href="style.css" />
+	<title>Pretty lines!</title>
+
+	<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script type="text/javascript" src="gl.js"></script>
+	<script type="text/javascript" src="cad.js"></script>
+	
+	
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec3 vNormal;
+
+uniform mat4 locMatrix;
+uniform mat4 rotateMatrix;
+uniform mat4 scaleMatrix;
+
+uniform mat4 cameraMatrix;
+uniform mat4 projectionMatrix;
+
+uniform int mappingMode;
+
+varying vec3 normalInterp;
+varying vec3 vertPos;
+
+//uniform float vsuvtype;
+//varying float fsuvtype;
+
+#define M_PI 3.1415926535897932384626433832795
+
+void main(){
+	gl_Position = projectionMatrix * cameraMatrix * locMatrix * rotateMatrix * scaleMatrix * vPosition;
+	vec4 vertPos4 = locMatrix * rotateMatrix * scaleMatrix * vPosition;
+	vertPos = vec3(vPosition);
+	normalInterp = vNormal;
+}
+
+
+	</script>
+
+	<script id="fragment-shader" type="x-shader/x-fragment">
+
+	precision highp float; 
+
+	varying vec3 normalInterp;
+	varying vec3 vertPos;
+	//texture coordinate from rasterizer
+	uniform sampler2D texture;
+	const vec3 lightPos = vec3(0.0,5.0,0.0);
+	const vec3 specColor = vec3(1.0, 1.0, 1.0);
+
+	uniform float fsuvtype;
+
+	vec3 ambient = vec3(0.2,0.2,0.2);
+	#define M_PI 3.1415926535897932384626433832795
+
+	void main() {
+
+		vec3 normal = normalize(normalInterp); 
+		vec3 lightDir = normalize(lightPos - vertPos);
+
+		float lambertian = max(dot(lightDir,normal), 0.0);
+		float specular = 0.0;
+
+		int mode = 3;
+
+		if(lambertian > 0.0) {
+
+			vec3 reflectDir = reflect(-lightDir, normal);
+			vec3 viewDir = normalize(-vertPos);
+
+			float specAngle = max(dot(reflectDir, viewDir), 0.0);
+			specular = pow(specAngle, 4.0);
+
+			specular *= lambertian;
+
+
+		}
+		// Texture mapping
+		float s=0.0;
+		float t=0.0;
+		
+		if(fsuvtype>0.5){
+			// Sphere mapping
+			s = 0.5 - (atan(normal.z,normal.x)/(2.0*M_PI));
+			t = 0.5 + (asin(normal.y)/M_PI);
+		}else{
+			// regular mapping
+			s = normal.x;
+			t = normal.y;
+		}
+
+		vec2 st = vec2(s,t);
+
+		vec3 diffuseColor = vec3(texture2D( texture, st));
+		ambient =  diffuseColor/10.0;
+
+		gl_FragColor = vec4( ambient + (lambertian*diffuseColor) + (specular*specColor), 1.0);
+	}
+
+	</script>
+
+	<script type="text/javascript">
+		$().ready(function(){
+			startCAD('gl-canvas');
+			alert('You can change the generated texture')
+		});
+	</script>
+</head>   
+
+	<body>
+	    <canvas id="gl-canvas">
+	        Oops ... your browser doesn't support the HTML5 canvas element
+	    </canvas>
+		<div id="left-panel" class="floating-window">
+			<div id="object-picker">
+				<h1>Mesh list</h1>
+				<div id="object-list"></div>
+			</div>
+			<div id="texture-manager">
+				<h1>Texture properties</h1>
+				<div id="texture-list"></div>
+			</div>
+		</div>
+		<div id="right-panel" class="floating-window">
+			<div id="object-properties"></div>
+		</div>
+	</body>
+</html>

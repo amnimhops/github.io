@@ -1,0 +1,459 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"specu",
+				"specularProduct"
+			],
+			[
+				"ss",
+				"ssss (obj)"
+			],
+			[
+				"initial",
+				"INITIAL_BUFFER_CAPACITY"
+			],
+			[
+				"last",
+				"lastCoords"
+			],
+			[
+				"current",
+				"currentPosition"
+			],
+			[
+				"sampling",
+				"samplingIntervalId"
+			],
+			[
+				"samp",
+				"samplingEnabled"
+			],
+			[
+				"requ",
+				"requestAnimFrame"
+			],
+			[
+				"setTi",
+				"setTimeout"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "index.html",
+			"settings":
+			{
+				"buffer_size": 3297,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gl.js",
+			"settings":
+			{
+				"buffer_size": 22056,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "cad.js",
+			"settings":
+			{
+				"buffer_size": 20280,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/amnimhops/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
+			"settings":
+			{
+				"buffer_size": 13677,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/amnimhops/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
+			"settings":
+			{
+				"buffer_size": 31032,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "all.js",
+			"settings":
+			{
+				"buffer_size": 31209,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"selected_items":
+		[
+			[
+				"package",
+				"Package Control: Remove Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 467.0
+	},
+	"console":
+	{
+		"height": 153.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/amnimhops/.config/sublime-text-2/Packages/User/Default (Linux).sublime-keymap",
+		"/home/amnimhops/development/github.io/assignment3/style.css",
+		"/home/amnimhops/development/github.io/assignment3/all.js",
+		"/home/amnimhops/development/github.io/assignment3/cad.js",
+		"/home/amnimhops/development/github.io/assignment3/index.html",
+		"/home/amnimhops/.config/sublime-text-2/Packages/tern_for_sublime/Tern.sublime-settings",
+		"/home/amnimhops/development/github.io/assignment3/asdf.js",
+		"/home/amnimhops/coursera-webgl/assignment3/MV.js",
+		"/home/amnimhops/coursera-webgl/assignment3/cad.html",
+		"/home/amnimhops/coursera-webgl/assignment3/initShaders.js",
+		"/home/amnimhops/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
+		"/home/amnimhops/coursera-webgl/assignment3/style.css",
+		"/home/amnimhops/development/voxelfighters/webgl/index.html",
+		"/home/amnimhops/coursera-webgl/assignment-2.html",
+		"/home/amnimhops/coursera-webgl/all-2.js",
+		"/home/amnimhops/coursera-webgl/assignment-1.html",
+		"/home/amnimhops/coursera-webgl/all.js",
+		"/home/amnimhops/coursera-webgl/assignment-1.js",
+		"/home/amnimhops/development/nodeworks/jSlots/canvas.js",
+		"/home/amnimhops/development/camaraarquitecta.rhcloud.com/portfolio/index.php",
+		"/home/amnimhops/development/camaraarquitecta.rhcloud.com/portfolio/index.html",
+		"/home/amnimhops/Escritorio/pylisp.py",
+		"/home/amnimhops/development/camaraarquitecta.rhcloud.com/portfolio/thumbnail-slider.html",
+		"/home/amnimhops/coursera-webgl/flatten.js",
+		"/home/amnimhops/development/camaraarquitecta.rhcloud.com/portfolio/css/demo.css",
+		"/home/amnimhops/coursera-webgl/webgl-utils.js",
+		"/home/amnimhops/coursera-webgl/MV.js",
+		"/home/amnimhops/coursera-webgl/initShaders2.js",
+		"/home/amnimhops/coursera-webgl/initShaders.js",
+		"/home/amnimhops/development/nodeworks/jSlots/pipeline.js",
+		"/home/amnimhops/development/nodeworks/jSlots/jslots.sublime-workspace"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"console.log",
+			"lightM",
+			"complete",
+			"ctrl+space",
+			"auto_complete",
+			"comple",
+			"b",
+			"console.l",
+			"TRIANGLES",
+			"alert",
+			"buffer",
+			"render",
+			"bufferId",
+			"Float32",
+			"red",
+			"1.0,",
+			".ttf",
+			"slider",
+			"initShader",
+			"scale",
+			"Bind",
+			"glBind",
+			"console.log",
+			"divide",
+			"DIVIDE",
+			"print"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 2,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "index.html",
+					"settings":
+					{
+						"buffer_size": 3297,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1670,
+								1670
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 810.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "gl.js",
+					"settings":
+					{
+						"buffer_size": 22056,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								19683,
+								19683
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 13466.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "cad.js",
+					"settings":
+					{
+						"buffer_size": 20280,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								9668,
+								9668
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 7030.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/home/amnimhops/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
+					"settings":
+					{
+						"buffer_size": 13677,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 54.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "/home/amnimhops/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
+					"settings":
+					{
+						"buffer_size": 31032,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								12958,
+								12958
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 4240.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "all.js",
+					"settings":
+					{
+						"buffer_size": 31209,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3674,
+								3674
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1334.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"replace":
+	{
+		"height": 0.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"index",
+				"index.html"
+			],
+			[
+				"cad",
+				"cad.js"
+			],
+			[
+				"all",
+				"all.js"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 50.0,
+	"status_bar_visible": true
+}
