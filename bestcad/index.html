@@ -5,36 +5,18 @@
 	<script>
 		function init(){
 			var sm = new SceneManager({fps:60,canvas:document.getElementById('canvas')});
-			sm.addMesh('mymesh',[
-				[-1.0,-1.0,-1.0,0,0,0,0,0],
-				[-1.0,1.0,-1.0,0,0,0,0,0],
-				[1.0,1.0,-1.0,0,0,0,0,0],
-				[1.0,-1.0,-1.0,0,0,0,0,0],
-				[-1.0,-1.0,1.0,0,0,0,0,0],
-				[-1.0,1.0,1.0,0,0,0,0,0],
-				[1.0,1.0,1.0,0,0,0,0,0],
-				[1.0,-1.0,1.0,0,0,0,0,0]
-			],[
-				[0,1,2],
-				[0,2,3],
-				[1,5,6],
-				[1,6,2],
-				[3,2,6],
-				[3,6,7],
-				[7,6,5],
-				[7,5,4],
-				[4,5,1],
-				[4,1,0],
-				[4,0,3],
-				[4,3,7]
-			]);
-
 		}
 	</script>
 
 	<script id="vertex-shader" type="x-shader/x-vertex">
-		attribute  vec4 vPosition;
+		attribute vec3 vPosition;
+		attribute vec3 vNormal;
+		attribute vec4 vColor;
+		attribute vec2 vTexture;
 		varying vec4 fColor;
+		varying vec2 tex;
+
+		uniform mat4 camera;
 		/*attribute  vec3 vNormal;
 		
 
@@ -77,9 +59,11 @@
 		    if( dot(L, N) < 0.0 ) {
 			specular = vec4(0.0, 0.0, 0.0, 1.0);
 		    } */
-
-		    gl_Position = vPosition;//projectionMatrix * modelViewMatrix * vPosition;
-		    fColor = vec4(1,0,0,1);//ambient + diffuse +specular;
+		    tex = vTexture;
+		    vec3 _normal = vNormal;
+		    gl_Position = camera * vec4(vPosition,1);//projectionMatrix * modelViewMatrix * vPosition;
+		    vec4 _color = vColor;
+		    fColor = vec4(vColor.r,vColor.g,vColor.b,1);
 		    
 		    //fColor.a = 1.0;
 		}
@@ -91,7 +75,7 @@
 
 
 		varying vec4 fColor;
-
+		varying vec2 tex;
 		void
 		main()
 		{

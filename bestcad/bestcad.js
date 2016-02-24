@@ -85,58 +85,71 @@ function SceneManager(config){
 		Inicializacion webgl
 	 */
 	var gl = setupWebGL(config.canvas);
-	initShaders(gl,'vertex-shader','fragment-shader');
-	/*
-		Metodos de servicio
-	 */
+	var program = initShaders(gl,'vertex-shader','fragment-shader');
 	
-	this.addMesh = function(name,vlist,flist){
-		
-		
-		/*
-			Copiamos los vertices a la lista de vertices de la escena
-		 */
-		var vIndex = vertexList.length;
-		vertexList = vertexList.concat(vlist);
-		/*
-			Cada face apunta a su propia lista de indices base-0, hay
-			que sumar vIndex a cada indice
-		 */
-		var fIndex = faceList.length;
-		var meshFaces = [];
-		for(var i in flist){
-			var face = []
-			for(var j in flist[i]){
-				face.push(flist[i][j] + vIndex);
-			}
-			faceList.push(face);
-			meshFaces.push(fIndex++);
-		}
+	//gl.enable(gl.DEPTH_TEST);
+
+	var theBuffer = null;
+
+	function foo(){
+		var pMatrix = mat4.create();
+		//mat4.perspective(pMatrix,Math.PI/4,800/600,0,100);
+		mat4.lookAt(pMatrix,vec3.create(0.9,0.9,0.9),vec3.create(0,0,0),vec3.create(0,1,0));
+		console.log(pMatrix)
+		gl.useProgram(program);
+		gl.viewport(0,0,800,600);
+		gl.clearColor(0.4,0.4,0.4,1);
+		gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+
+		if(theBuffer!=null) gl.deleteBuffer(theBuffer);
+
+		theBuffer = gl.createBuffer();
+
+		var data = new Float32Array([
+			
+				-0.5,0,0,	0,0,1,	1,1,1,1,	0,0
+			,
+			
+				0,0.5,0,	0,0,1,	0,1,0,1,	0.5,1
+			,
+			
+				0.5,0,0,	0,0,1,	0,0,1,1,	1,0
+			,
+				-1,0,0,	0,0,1,	1,1,1,1,	0,0
+			,
+			
+				0,0.2,0,	0,0,1,	0,1,0,1,	0.5,1
+			,
+			
+				1,-1,0,	0,0,1,	0,0,1,1,	1,0
+			
+		]);
+
+		gl.bindBuffer( gl.ARRAY_BUFFER, theBuffer );
+        gl.bufferData( gl.ARRAY_BUFFER, data  , gl.STATIC_DRAW );
+
+    	var vPosition = gl.getAttribLocation( program, "vPosition" );
+        gl.vertexAttribPointer( vPosition, 3, gl.FLOAT, false, 12 * 4, 0 ); // offset  8 elementos * 4 bytes, desplazamiento 0
+        gl.enableVertexAttribArray( vPosition );
+
+    	var vNormal = gl.getAttribLocation( program, "vNormal" );
+        gl.vertexAttribPointer( vNormal, 3, gl.FLOAT, false, 12 * 4, 3*4 ); // offset 4 bytes * 3 elementos, desplazamiento el offset anterior
+        gl.enableVertexAttribArray( vNormal );
+
+		var vColor = gl.getAttribLocation( program, "vColor" );
+        gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 12 * 4, 3*4 + 4*3 ); // offset 4 bytes * 3 elementos, desplazamiento el offset anterior
+        gl.enableVertexAttribArray( vColor );
 
 
-
-		var mesh = new Mesh(vlist,flist);
-		if(meshes[name]!==undefined) throw new Error('Mesh '+name+' already defined');
-
-		meshes[name] = mesh;
-	};
-
-	this.rebuildScene = function(){
-		/* Obtenemos las estadisticas de los modelos */
-		var vertexCount = getVertexCount();
-		if(wglVertexBuffer!==null){
-			gl.deleteBuffer(wglVertexBuffer);
-		}
-
-		wglVertexBuffer = gl.createBuffer();
-        gl.bindBuffer( gl.ARRAY_BUFFER, wglVertexBuffer );
-        gl.bufferData( gl.ARRAY_BUFFER, this.size * 4 , gl.STATIC_DRAW );
-	}
-
-	this.foo = function(){
-		console.log('ho');
-
-	}
+		var vTexture = gl.getAttribLocation( program, "vTexture" );
+        gl.vertexAttribPointer( vTexture, 2, gl.FLOAT, false, 12 * 4 , 3*4 + 3*4 + 4*4 ); // offset 4 bytes * 2 elementos, desplazamiento la suma de offsets anteriores
+        gl.enableVertexAttribArray( vTexture );
+    
+    	// Pasamos la proyeccion
+    	gl.uniformMatrix4fv( gl.getUniformLocation(program, "camera"),false, pMatrix);
+    	//gl.lineWidth(2)
+    	gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
 
 	/*
 		Funciones de renderizado
@@ -149,17 +162,12 @@ function SceneManager(config){
 	var threshold = 1000;
 	var iterations = 0;
 
-	function renderA(){
-		requestAnimationFrame(renderB);
-		render();
-	}
-
-	function renderB(){
-		requestAnimationFrame(renderA);
-		render();
-	}
-
 	function render(){	
+		
+		//gl.lineWidth(3);
+		//gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+		
+		
 		currentRenderTime = Date.now();
 		var delta = currentRenderTime - lastRenderTime;
 
@@ -168,18 +176,14 @@ function SceneManager(config){
 			fps = frameCount
 			frameCount = 0;
 			
-			loop();
-
 			iterations++;
 		}else{
 			frameCount++;
 		}
+
+		requestAnimationFrame(render);
 	}
-
-	function loop(){
-
-	}
-
+	foo();
 	/* Inicia el renderizado */
-	requestAnimationFrame(renderA);
+	render();
 }
