@@ -87,35 +87,52 @@ function SceneManager(config){
 	var gl = setupWebGL(config.canvas);
 	var program = initShaders(gl,'vertex-shader','fragment-shader');
 	
-	//gl.enable(gl.DEPTH_TEST);
+	gl.enable(gl.DEPTH_TEST);
 
 	var theBuffer = null;
+	var theFaceBuffer = null;
 	var rotationAngle = 0;
 	var rotationAxis = vec3.create();rotationAxis.set([0,1,0],0);
 	var rotationMatrix = mat4.create();
 
-	function foo(){
-		var pMatrix = mat4.create();
-		var eye = vec3.create(); eye.set([1,1,1],0); // En el fondo, esto es un Float32Array !
-		var center = vec3.create(); center.set([0,0,0],0);
-		var up = vec3.create(); up.set([0,1,0],0);
-		//mat4.perspective(pMatrix,Math.PI/4,800/600,0,100);
-		//mat4.lookAt(pMatrix,eye,center,up);
-		mat4.ortho(pMatrix,-10,10,-10,10,-10,10);
-		
-		var cam = mat4.create();
-		mat4.lookAt(cam,eye,center,up);
-		mat4.mul(pMatrix,pMatrix,cam)
-		
-		console.log(pMatrix)
-		gl.useProgram(program);
-		gl.viewport(0,0,800,600);
-		
+	function createTriangles(n){
 		if(theBuffer!=null) gl.deleteBuffer(theBuffer);
+		if(theFaceBuffer!=null) gl.deleteBuffer(theFaceBuffer);
 
 		theBuffer = gl.createBuffer();
+		var vertexdata = new Float32Array(12*n*3);
+		for(var i=0;i<n*3;i++){
+			vertexdata[i*12] = -1 + (Math.random() * 2); //x
+			vertexdata[i*12+1] = -1 + (Math.random() * 2); //y
+			vertexdata[i*12+2] = -1 + (Math.random() * 2); //z
 
-		var data = new Float32Array([
+			vertexdata[i*12+3] = 0; //nx
+			vertexdata[i*12+4] = 0; //ny
+			vertexdata[i*12+5] = 1; //nz
+			
+			vertexdata[i*12+6] = Math.random();
+			vertexdata[i*12+7] = Math.random();
+			vertexdata[i*12+8] = Math.random();
+			vertexdata[i*12+9] = 1; //a
+
+			vertexdata[i*12+10] = Math.random(); //s
+			vertexdata[i*12+11] = Math.random(); //t				
+		}
+
+		gl.bindBuffer( gl.ARRAY_BUFFER, theBuffer );
+        gl.bufferData( gl.ARRAY_BUFFER, vertexdata  , gl.STATIC_DRAW );
+
+    	theFaceBuffer = gl.createBuffer();
+
+    	var faceData = new Uint16Array(n*3);
+    	for(var i=0;i<n*3;i++){
+    		faceData[i] = i;
+    	}
+
+    	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, theFaceBuffer);
+    	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, faceData, gl.STATIC_DRAW);
+
+		/*var data = new Float32Array([
 			
 				-1,0,0,	0,0,1,	1,0,0,1,	0,0
 			,
@@ -133,10 +150,27 @@ function SceneManager(config){
 			
 				1,0,0,	0,0,1,	0,0,1,1,	1,0
 			
-		]);
+		]);*/
 
-		gl.bindBuffer( gl.ARRAY_BUFFER, theBuffer );
-        gl.bufferData( gl.ARRAY_BUFFER, data  , gl.STATIC_DRAW );
+	}
+	function foo(){
+		var pMatrix = mat4.create();
+		var eye = vec3.create(); eye.set([1,1,1],0); // En el fondo, esto es un Float32Array !
+		var center = vec3.create(); center.set([0,0,0],0);
+		var up = vec3.create(); up.set([0,1,0],0);
+		//mat4.perspective(pMatrix,Math.PI/4,800/600,0,100);
+		//mat4.lookAt(pMatrix,eye,center,up);
+		mat4.ortho(pMatrix,-2,2,-2,2,-2,2);
+		
+		var cam = mat4.create();
+		mat4.lookAt(cam,eye,center,up);
+		mat4.mul(pMatrix,pMatrix,cam)
+		
+		console.log(pMatrix)
+		gl.useProgram(program);
+		gl.viewport(0,0,800,600);
+		
+		createTriangles(100000);
 
     	var vPosition = gl.getAttribLocation( program, "vPosition" );
         gl.vertexAttribPointer( vPosition, 3, gl.FLOAT, false, 12 * 4, 0 ); // offset  8 elementos * 4 bytes, desplazamiento 0
@@ -174,17 +208,21 @@ function SceneManager(config){
 	var iterations = 0;
 rotationMatrix = mat4.create();
 rotationAngle+=0.1;
+gl.clearColor(0.4,0.4,0.4,1);
+	var uniformRotation = gl.getUniformLocation(program, "rotation");
 	function render(){	
 		
 		
 		mat4.rotate(rotationMatrix,rotationMatrix,rotationAngle,rotationAxis);
 		if(rotationAngle>2*Math.PI) rotationAngle=0;
 
-		gl.clearColor(0.4,0.4,0.4,1);
+		
 		gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
-		gl.uniformMatrix4fv( gl.getUniformLocation(program, "rotation"),false, rotationMatrix);
+		gl.uniformMatrix4fv( uniformRotation ,false, rotationMatrix);
 
-		gl.drawArrays(gl.TRIANGLES, 0, 6);
+		//gl.drawArrays(gl.TRIANGLES, 0, 20000*3);
+		gl.drawElements(gl.TRIANGLES, 100000*3, gl.UNSIGNED_SHORT, 0);
+
 		//gl.lineWidth(3);
 		//gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 
