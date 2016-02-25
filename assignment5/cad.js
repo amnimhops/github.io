@@ -564,7 +564,7 @@ function CAD(canvas){
     	gl.uniform4fv(gl.getUniformLocation(this.program, "diffuseProduct"),flatten(diffuseProduct));
     	gl.uniform4fv(gl.getUniformLocation(this.program, "specularProduct"),flatten(specularProduct));	
 
-    	gl.uniform1f(gl.getUniformLocation(this.program,"shininess"),materialShininess);
+    	gl.uniform1f(gl.getUniformLocation(this.program,"angle"),materialShininess);
     	
 		var camera = this.getCameraMatrix2();    
     	

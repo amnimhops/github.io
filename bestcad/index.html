@@ -17,6 +17,7 @@
 		varying vec2 tex;
 
 		uniform mat4 camera;
+		uniform mat4 rotation;
 		/*attribute  vec3 vNormal;
 		
 
@@ -61,7 +62,8 @@
 		    } */
 		    tex = vTexture;
 		    vec3 _normal = vNormal;
-		    gl_Position = camera * vec4(vPosition,1);//projectionMatrix * modelViewMatrix * vPosition;
+		    gl_Position = camera * rotation * vec4(vPosition,1);//projectionMatrix * modelViewMatrix * vPosition;
+
 		    vec4 _color = vColor;
 		    fColor = vec4(vColor.r,vColor.g,vColor.b,1);
 		    

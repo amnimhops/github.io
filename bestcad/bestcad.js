@@ -90,38 +90,48 @@ function SceneManager(config){
 	//gl.enable(gl.DEPTH_TEST);
 
 	var theBuffer = null;
+	var rotationAngle = 0;
+	var rotationAxis = vec3.create();rotationAxis.set([0,1,0],0);
+	var rotationMatrix = mat4.create();
 
 	function foo(){
 		var pMatrix = mat4.create();
+		var eye = vec3.create(); eye.set([1,1,1],0); // En el fondo, esto es un Float32Array !
+		var center = vec3.create(); center.set([0,0,0],0);
+		var up = vec3.create(); up.set([0,1,0],0);
 		//mat4.perspective(pMatrix,Math.PI/4,800/600,0,100);
-		mat4.lookAt(pMatrix,vec3.create(0.9,0.9,0.9),vec3.create(0,0,0),vec3.create(0,1,0));
+		//mat4.lookAt(pMatrix,eye,center,up);
+		mat4.ortho(pMatrix,-10,10,-10,10,-10,10);
+		
+		var cam = mat4.create();
+		mat4.lookAt(cam,eye,center,up);
+		mat4.mul(pMatrix,pMatrix,cam)
+		
 		console.log(pMatrix)
 		gl.useProgram(program);
 		gl.viewport(0,0,800,600);
-		gl.clearColor(0.4,0.4,0.4,1);
-		gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
-
+		
 		if(theBuffer!=null) gl.deleteBuffer(theBuffer);
 
 		theBuffer = gl.createBuffer();
 
 		var data = new Float32Array([
 			
-				-0.5,0,0,	0,0,1,	1,1,1,1,	0,0
+				-1,0,0,	0,0,1,	1,0,0,1,	0,0
 			,
 			
-				0,0.5,0,	0,0,1,	0,1,0,1,	0.5,1
+				0,0.5,0,	0,0,1,	1,0,0,1,	0.5,1
 			,
 			
-				0.5,0,0,	0,0,1,	0,0,1,1,	1,0
+				0,0,0,	0,0,1,	1,0,0,1,	1,0
 			,
-				-1,0,0,	0,0,1,	1,1,1,1,	0,0
-			,
-			
-				0,0.2,0,	0,0,1,	0,1,0,1,	0.5,1
+				0,0,0,	0,0,1,	0,0,1,1,	0,0
 			,
 			
-				1,-1,0,	0,0,1,	0,0,1,1,	1,0
+				0,1,0,	0,0,1,	0,0,1,1,	0.5,1
+			,
+			
+				1,0,0,	0,0,1,	0,0,1,1,	1,0
 			
 		]);
 
@@ -147,8 +157,9 @@ function SceneManager(config){
     
     	// Pasamos la proyeccion
     	gl.uniformMatrix4fv( gl.getUniformLocation(program, "camera"),false, pMatrix);
+    	
     	//gl.lineWidth(2)
-    	gl.drawArrays(gl.TRIANGLES, 0, 6);
+    	
     }
 
 	/*
@@ -161,13 +172,22 @@ function SceneManager(config){
 	var currentRenderTime = 0;
 	var threshold = 1000;
 	var iterations = 0;
-
+rotationMatrix = mat4.create();
+rotationAngle+=0.1;
 	function render(){	
 		
+		
+		mat4.rotate(rotationMatrix,rotationMatrix,rotationAngle,rotationAxis);
+		if(rotationAngle>2*Math.PI) rotationAngle=0;
+
+		gl.clearColor(0.4,0.4,0.4,1);
+		gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+		gl.uniformMatrix4fv( gl.getUniformLocation(program, "rotation"),false, rotationMatrix);
+
+		gl.drawArrays(gl.TRIANGLES, 0, 6);
 		//gl.lineWidth(3);
 		//gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
-		
-		
+
 		currentRenderTime = Date.now();
 		var delta = currentRenderTime - lastRenderTime;
 
@@ -177,6 +197,8 @@ function SceneManager(config){
 			frameCount = 0;
 			
 			iterations++;
+
+			console.log(fps,rotationAngle);
 		}else{
 			frameCount++;
 		}
