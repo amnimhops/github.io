@@ -170,7 +170,7 @@ function SceneManager(config){
 		gl.useProgram(program);
 		gl.viewport(0,0,800,600);
 		
-		createTriangles(100000);
+		createTriangles(50000);
 
     	var vPosition = gl.getAttribLocation( program, "vPosition" );
         gl.vertexAttribPointer( vPosition, 3, gl.FLOAT, false, 12 * 4, 0 ); // offset  8 elementos * 4 bytes, desplazamiento 0
@@ -220,7 +220,7 @@ gl.clearColor(0.4,0.4,0.4,1);
 		gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 		gl.uniformMatrix4fv( uniformRotation ,false, rotationMatrix);
 
-		gl.drawArrays(gl.TRIANGLES, 0, 100000*3);
+		gl.drawArrays(gl.TRIANGLES, 0, 50000*3);
 		//gl.drawElements(gl.TRIANGLES, 100000*3, gl.UNSIGNED_SHORT, 0);
 
 		//gl.lineWidth(3);
